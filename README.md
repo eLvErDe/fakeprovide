@@ -1,3 +1,44 @@
+MariaDB libs on a broken CentOS 7 system
+========================================
+
+I had to workaround a third-parties installed server running CentOS 7 with some hand installed RPMs of MySQL for CentOS 6.
+That leads to a server on which basically nothing linked with MySQL in not installable because of unresolved mariadb-libs dependency. This include for example postifx or python-mysql.
+Anyway, at the moment I'm not authorized to clean this shit out but, I really need to be able to install few packages on it for proper infrastructure integration (and MySQL libs are actually here and working despite the horrible way it has been setup).
+
+Thanks GitHub, I found this fakeprovide shell script creating a fake RPM package and modified it a bit to include epoch in version and be able to pass version to provided dependencies.
+
+Here is how to use it:
+
+Get the proper provided dependencies by installing the package on a working system and query with rpm:
+
+```
+yum -y install mariadb-libs
+rpm -q --provides mariadb-libs
+```
+
+Create a fake RPM providing everything
+
+```
+./fakeprovide -a x86_64 \
+              -v 5.5.56 \
+              -P 'config(mariadb-libs)=1:5.5.56-2.el7' \
+              -P 'libmysqlclient.so.18()(64bit)' \
+              -P 'libmysqlclient.so.18(libmysqlclient_16)(64bit)' \
+              -P 'libmysqlclient.so.18(libmysqlclient_18)(64bit)' \
+              -P 'mysql-libs=1:5.5.56-2.el7' \
+              -P 'mysql-libs(x86-64)=1:5.5.56-2.el7' \
+              -P 'mariadb-libs=1:5.5.56-2.el7' \
+              mariadb-libs
+```
+
+Call yum and pass him this created RPM:
+
+```
+yum install python34-mysql fakeprovide-mariadb-libs-5.5.56-2.el7.x86_64.rpm
+
+```
+
+
 Fakeprovide
 ===========
 
