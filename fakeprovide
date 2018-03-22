@@ -60,8 +60,9 @@ EOF
 # Create the RPM spec file.
 cat > $tmpdir/fakeprovide.spec <<EOF
 Name:		fakeprovide-$provide
-Version:	${RPM_VERSION:-$(date "+%Y%m%d%H%M%S")}
-Release:	1%{?dist}
+Version:	${RPM_VERSION}
+Epoch:          1
+Release:	2.el7
 Summary:	${RPM_SUMMARY:-Fake provide for $provide.}
 
 Group:		Fake
@@ -69,10 +70,10 @@ License:	GPL
 BuildRoot:	%(mktemp -ud %{_tmppath}/%{name}-%{version}-%{release}-XXXXXX)
 
 Source:		README
-Provides:	$provide
+Provides:	$provide = %{epoch}:%{version}-%{release}
 
 $(for p in "${RPM_ADDL_PROVIDES[@]}"; do
-echo "Provides: $p"
+echo "Provides: `echo $p | sed 's/=/ = /'`"
 done)
 
 BuildArch:	$RPM_BUILDARCH
@@ -126,5 +127,3 @@ for rpm in $tmpdir/rpmbuild/RPMS/*/*.rpm $tmpdir/rpmbuild/SRPMS/*.rpm; do
 	cp "$rpm" .
 	ls "$(basename $rpm)"
 done
-
-
